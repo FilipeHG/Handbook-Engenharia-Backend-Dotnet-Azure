@@ -1,0 +1,5 @@
+---
+description: Regras corporativas para Backend .NET 10 + Azure
+alwaysApply: true
+---
+Leia @AGENTS.md e os arquivos relevantes em @Handbook antes de gerar ou alterar código. Nomenclatura de negócio em Português do Brasil. Preserve boundaries. Sem secrets no Git. Managed Identity em Azure. Controllers/triggers não acessam Infrastructure diretamente. Gere/atualize testes e observabilidade junto da feature.

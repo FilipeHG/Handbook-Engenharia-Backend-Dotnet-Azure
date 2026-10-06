@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handbook de Engenharia Backend — .NET 10 + Azure</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+<style>
+:root{--nav:290px;--bg:#f5f7fb;--ink:#182230;--muted:#64748b;--accent:#2563eb;--panel:#fff;--line:#e2e8f0}
+html{scroll-behavior:smooth}body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.sidebar{position:fixed;inset:0 auto 0 0;width:var(--nav);background:#0f172a;color:#dbeafe;padding:24px 16px;overflow:auto}.brand{font-weight:800;font-size:1.05rem;color:#fff}.sidebar a{display:block;color:#cbd5e1;text-decoration:none;padding:7px 9px;border-radius:8px;font-size:.9rem}.sidebar a:hover{background:#1e293b;color:#fff}.main{margin-left:var(--nav);padding:32px;max-width:1500px}.hero{background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border-radius:22px;padding:42px;box-shadow:0 18px 50px #0f172a22}.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;margin:24px 0;box-shadow:0 8px 30px #0f172a0a}.kicker{color:#60a5fa;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:700}.rule{border-left:4px solid var(--accent);background:#eff6ff;padding:14px 16px;border-radius:8px}.warn{border-left-color:#f59e0b;background:#fffbeb}.danger{border-left-color:#dc2626;background:#fef2f2}.ok{border-left-color:#16a34a;background:#f0fdf4}.badge-norm{font-size:.72rem}.table{--bs-table-bg:transparent}pre{border-radius:12px;padding:16px}.mermaid{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;overflow:auto}.card{border-color:var(--line);border-radius:14px}.toc-mini a{text-decoration:none}.print-btn{position:fixed;right:22px;bottom:22px;z-index:20}.small-muted{font-size:.9rem;color:var(--muted)}
+@media(max-width:960px){.sidebar{position:relative;width:auto;height:auto}.main{margin:0;padding:16px}.hero{padding:28px}.print-btn{position:static;margin:12px 0}}
+@media print{.sidebar,.print-btn{display:none!important}.main{margin:0;max-width:none;padding:0}.section,.hero{break-inside:avoid;box-shadow:none}.section{border:1px solid #ddd}.hero{background:#fff!important;color:#000!important;border:1px solid #ddd}.kicker{color:#333}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+<div class="brand mb-1"><i class="bi bi-braces-asterisk me-2"></i>Engineering Handbook</div><div class="small text-secondary mb-3">.NET 10 · Azure · Dataverse</div>
+<a href="#inicio">Início</a><a href="#principios">Princípios</a><a href="#arquitetura">Arquitetura</a><a href="#api">REST/OpenAPI</a><a href="#dados">EF x Dapper</a><a href="#azure">Azure/Identidade</a><a href="#dataverse">Dynamics/Dataverse</a><a href="#functions">Functions/Workers</a><a href="#config">Config/Secrets</a><a href="#seguranca">Segurança</a><a href="#testes">Testes</a><a href="#observabilidade">Observabilidade</a><a href="#git">Git Flow</a><a href="#review">Code Review</a><a href="#resiliencia">Resiliência</a><a href="#cicd">CI/CD</a><a href="#erros">Erros</a><a href="#legado">Upgrade legado</a><a href="#ia">Agentes de IA</a><a href="#checklist">Checklist</a>
+</aside>
+<main class="main">
+<section id="inicio" class="hero"><div class="kicker">Plataforma corporativa de conhecimento</div><h1 class="display-5 fw-bold">Handbook de Engenharia Backend</h1><p class="lead mb-2">APIs .NET 10 LTS · Azure end-to-end · Dynamics/Dataverse · SQL · Functions · Workers · Segurança · Testes · Operação</p><p class="mb-0 opacity-75">Fonte normativa para criação, manutenção e modernização de serviços Backend, desenhada também para consumo por agentes de IA.</p></section>
+<button class="btn btn-primary print-btn" onclick="window.print()"><i class="bi bi-printer me-1"></i> Imprimir / PDF</button>
+<section id="principios" class="section"><h2><i class="bi bi-compass me-2"></i>Princípios e regras</h2><div class="row g-3"><div class="col-md-4"><div class="card h-100 p-3"><b>Clareza</b><span class="small-muted">KISS, YAGNI e SOLID pragmático.</span></div></div><div class="col-md-4"><div class="card h-100 p-3"><b>Security by default</b><span class="small-muted">Managed Identity, least privilege e zero segredo no Git.</span></div></div><div class="col-md-4"><div class="card h-100 p-3"><b>Operável</b><span class="small-muted">Logs, métricas, traces, health e testes desde o início.</span></div></div></div><div class="rule mt-3"><b>OBRIGATÓRIO:</b> nomenclatura de negócio, arquivos e pastas em Português do Brasil. Frameworks e nomes externos permanecem no nome oficial.</div></section>
+<section id="arquitetura" class="section"><h2>Arquitetura oficial</h2><p>Clean Architecture pragmática em camadas. API, Function e Worker são hosts; Domain e Application concentram regra/orquestração.</p><div class="mermaid">flowchart TD
+API[API / Controllers] --> APP[Aplicação]
+FUN[Azure Functions] --> APP
+WRK[Worker] --> APP
+APP --> DOM[Domínio]
+INF[Infraestrutura] --> APP
+INF --> DOM
+API -. composition root .-> INF
+FUN -. composition root .-> INF
+WRK -. composition root .-> INF</div><pre><code class="language-text">src/
+  Empresa.Produto.Servico.Api/
+  Empresa.Produto.Servico.Aplicacao/
+  Empresa.Produto.Servico.Dominio/
+  Empresa.Produto.Servico.Infraestrutura/
+  Empresa.Produto.Servico.Functions/
+  Empresa.Produto.Servico.Worker/
+tests/
+  ...Testes.Unitarios/
+  ...Testes.Integracao/
+  ...Testes.E2E/</code></pre><div class="rule danger"><b>PROIBIDO:</b> Controller/trigger acessando DbContext, Dapper, ServiceClient/Dataverse ou Azure SDK diretamente.</div></section>
+<section id="api" class="section"><h2>REST e OpenAPI</h2><p>Recursos no plural, contratos explícitos, Problem Details e OpenAPI 3.1.</p><pre><code class="language-http">GET    /api/v1/solicitacoes
+GET    /api/v1/solicitacoes/{id}
+POST   /api/v1/solicitacoes
+PATCH  /api/v1/solicitacoes/{id}/status
+DELETE /api/v1/solicitacoes/{id}</code></pre><div class="row"><div class="col-md-6"><h5>Status</h5><p>200/201/204 sucesso; 400 request; 401/403 segurança; 404 ausência; 409 conflito de estado; 429 throttling; 500 inesperado; 503 indisponibilidade/readiness.</p></div><div class="col-md-6"><h5>Contrato</h5><p>DTO HTTP ≠ entidade de domínio ≠ schema SQL ≠ Entity do Dataverse. Evite vazar implementação para consumidores.</p></div></div></section>
+<section id="dados" class="section"><h2>EF Core ou Dapper?</h2><table class="table"><thead><tr><th>Critério</th><th>EF Core</th><th>Dapper</th></tr></thead><tbody><tr><td>Produtividade CRUD</td><td>Excelente</td><td>Boa</td></tr><tr><td>SQL explícito/legado</td><td>Possível</td><td>Excelente</td></tr><tr><td>Queries complexas</td><td>Boa, depende do caso</td><td>Excelente controle</td></tr><tr><td>Migrations</td><td>Nativas</td><td>Ferramenta/script separado</td></tr><tr><td>Boundary</td><td colspan="2">Ambos implementam ports de Application</td></tr></tbody></table><div class="rule ok">Abordagem híbrida é permitida, mas “EF para escrita + Dapper para leitura” não é automaticamente CQRS.</div></section>
+<section id="azure" class="section"><h2>Azure e identidade</h2><div class="mermaid">flowchart LR
+L[Local] --> DAC[DefaultAzureCredential / login dev]
+A[Azure Dev/Hml/Prod] --> MI[ManagedIdentityCredential]
+MI --> KV[Key Vault]
+MI --> ST[Storage]
+MI --> SQL[Azure SQL]
+MI --> SB[Service Bus]</div><p>Em Azure, credencial determinística e least privilege. Uma identidade por workload ou boundary operacional relevante; evitar “identidade superadmin” compartilhada.</p></section>
+<section id="dataverse" class="section"><h2>Dynamics 365 / Dataverse</h2><div class="mermaid">sequenceDiagram
+participant W as API / Function / Worker
+participant E as Entra ID
+participant D as Dataverse
+W->>E: token via Managed Identity
+E-->>W: access token
+W->>D: ServiceClient/token provider
+D-->>W: operação autorizada</div><div class="rule warn"><b>Atenção:</b> Managed Identity no host não concede acesso automaticamente ao Dataverse. O principal precisa estar corretamente provisionado/mapeado como Application User e receber security role mínima no ambiente.</div><pre><code class="language-csharp">var credencial = new ManagedIdentityCredential();
+async Task&lt;string&gt; ObterTokenAsync(string _)
+{
+    var contexto = new TokenRequestContext([$"{autoridadeDataverse}/.default"]);
+    return (await credencial.GetTokenAsync(contexto)).Token;
+}
+var cliente = new ServiceClient(urlDataverse, ObterTokenAsync, useUniqueInstance: false);</code></pre></section>
+<section id="functions" class="section"><h2>Functions e Workers</h2><p>Trigger é adaptador, não camada de negócio. Reutilize Application/Domain e implemente integrações em Infrastructure.</p><div class="mermaid">flowchart LR
+TR[Service Bus/Timer/HTTP] --> F[Function]
+F --> A[Aplicação]
+A --> P[Port]
+I[Infraestrutura] --> P
+I --> DV[Dataverse / SQL / Storage]</div><p>Mensageria exige idempotência, DLQ, retry consciente, correlation ID e limites de concorrência.</p></section>
+<section id="config" class="section"><h2>Configuração e segredos</h2><pre><code class="language-text">appsettings.json              -> defaults não sensíveis
+appsettings.Development.json  -> defaults locais
+User Secrets / .env ignorado  -> segredo local quando necessário
+Environment Variables         -> overrides
+Azure App Configuration       -> config central
+Azure Key Vault               -> segredos/chaves/certificados</code></pre><div class="rule danger">Nunca versionar client secret, connection string sensível, token ou certificado privado.</div></section>
+<section id="seguranca" class="section"><h2>Segurança</h2><ul><li>OAuth/OIDC/Entra ID, audience/issuer/lifetime validados.</li><li>Authorization policies e least privilege.</li><li>CORS por allowlist; rate limit quando aplicável.</li><li>OWASP API Security Top 10 e threat modeling.</li><li>SAST/SCA/secret scan no CI.</li><li>Logs sem Authorization header, tokens, client secrets ou PII desnecessária.</li></ul></section>
+<section id="testes" class="section"><h2>Testes</h2><div class="mermaid">flowchart BT
+U[Unitários: Domain/Application] --> I[Integração: SQL/clients]
+I --> E[E2E: HTTP/fluxos críticos]</div><p>Functions/Workers: testar handler/caso de uso separadamente do trigger e adicionar testes de integração para binding, retry e idempotência.</p></section>
+<section id="observabilidade" class="section"><h2>Observabilidade</h2><div class="row g-3"><div class="col-md-4"><div class="card p-3 h-100"><b>Logs</b><span class="small-muted">Estruturados, sem segredo.</span></div></div><div class="col-md-4"><div class="card p-3 h-100"><b>Métricas</b><span class="small-muted">RPS, latência p95/p99, erros, retry, lag.</span></div></div><div class="col-md-4"><div class="card p-3 h-100"><b>Traces</b><span class="small-muted">W3C trace context + OpenTelemetry.</span></div></div></div><p class="mt-3"><code>/health/live</code> mede processo; <code>/health/ready</code> mede capacidade de receber tráfego.</p></section>
+<section id="git" class="section"><h2>Git Flow e commits</h2><pre><code class="language-text">main
+├── hotfix/INC-123-corrigir-timeout
+develop
+├── feature/US-456-criar-solicitacao
+├── bugfix/BUG-789-ajustar-validacao
+└── release/1.4.0</code></pre><p>Branches curtas, PR obrigatório e Conventional Commits:</p><pre><code class="language-text">feat(solicitacoes): adiciona criação de solicitação
+fix(dataverse): respeita Retry-After em throttling
+security(auth): restringe audience aceita</code></pre></section>
+<section id="review" class="section"><h2>Code Review</h2><p>Classifique: <span class="badge bg-danger">BLOQUEANTE</span> <span class="badge bg-warning text-dark">IMPORTANTE</span> <span class="badge bg-info text-dark">SUGESTÃO</span> <span class="badge bg-secondary">DÚVIDA</span></p><p>Revise comportamento, arquitetura, autorização, SQL/performance, resiliência, contrato, testes, observabilidade e secrets.</p></section>
+<section id="resiliencia" class="section"><h2>Resiliência e integrações</h2><p>Timeout explícito, retry apenas para falhas transitórias, backoff + jitter, respeito a <code>Retry-After</code>, idempotência e limites de concorrência. Retry em cascata é um anti-pattern.</p><div class="rule warn">Mensageria: ID/correlationId, consumidor idempotente, DLQ monitorada, TTL/MaxDeliveryCount intencionais e Outbox quando banco + publicação exigirem consistência.</div></section>
+<section id="cicd" class="section"><h2>CI/CD</h2><div class="mermaid">flowchart LR
+C[PR] --> B[Build]
+B --> S[Analyzers/Security]
+S --> U[Unit]
+U --> I[Integration]
+I --> O[OpenAPI]
+O --> P[Package]
+P --> D[Deploy Dev]
+D --> E[E2E/Smoke]
+E --> G[Policy/Approval]
+G --> PRD[Prod]
+PRD --> V[Health/Telemetry]</div><p>Promover o mesmo artefato entre ambientes, obter secrets por identidade/secret store e manter rollback executável.</p></section>
+<section id="erros" class="section"><h2>Validação e erros</h2><p>Validação ocorre em quatro níveis: contrato, Application, Domain e constraints externas. Falhas HTTP usam Problem Details/RFC 9457; erros internos de SQL/Dataverse não vazam para o consumidor.</p></section>
+<section id="legado" class="section"><h2>Upgrade de APIs legadas</h2><div class="mermaid">flowchart LR
+INV[Inventário] --> CAR[Testes de caracterização]
+CAR --> SEC[Segurança/deps]
+SEC --> NET[.NET 10]
+NET --> CFG[Config/identidade]
+CFG --> OBS[Observabilidade]
+OBS --> ARC[Refatoração incremental]
+ARC --> ROL[Rollout]</div><div class="rule">Sem big-bang. Preserve contrato, crie testes antes de refatorar comportamento e migre boundaries por fatias.</div></section>
+<section id="ia" class="section"><h2>Agentes de IA</h2><p>A pasta <code>IA/</code> contém prompts para criação de API, upgrade e code review. A raiz contém <code>AGENTS.md</code>; Copilot, Cursor e Kiro possuem arquivos específicos que apontam para a mesma fonte normativa.</p><div class="rule ok">A documentação evita duplicação intencionalmente: regras vivem no Handbook; arquivos das IDEs apenas direcionam o agente.</div></section>
+<section id="checklist" class="section"><h2>Checklist de produção</h2><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item">☐ Boundaries respeitados</li><li class="list-group-item">☐ Nenhum segredo versionado</li><li class="list-group-item">☐ AuthN/AuthZ e least privilege</li><li class="list-group-item">☐ Migrations/índices revisados</li></ul></div><div class="col-md-6"><ul class="list-group"><li class="list-group-item">☐ Unit/Integration/E2E críticos</li><li class="list-group-item">☐ Logs/métricas/traces</li><li class="list-group-item">☐ Health e alertas</li><li class="list-group-item">☐ Rollback e compatibilidade</li></ul></div></div></section>
+<footer class="text-center small-muted py-4">Handbook Backend .NET 10 + Azure · versão base 2026-10-05 · Consulte os arquivos Markdown para regras completas.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'neutral',securityLevel:'loose'});hljs.highlightAll();</script>
+</body></html>

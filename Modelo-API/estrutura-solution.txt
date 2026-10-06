@@ -1,0 +1,34 @@
+Empresa.Modelo.sln
+Directory.Build.props
+Directory.Packages.props
+src/
+  Empresa.Modelo.Api/
+    Controllers/
+    Configuracao/
+    Middlewares/
+    Program.cs
+  Empresa.Modelo.Aplicacao/
+    Abstracoes/
+    Clientes/
+    Solicitacoes/
+  Empresa.Modelo.Dominio/
+    Solicitacoes/
+    Excecoes/
+  Empresa.Modelo.Infraestrutura/
+    Persistencia/
+      Ef/
+      Dapper/
+    Dynamics/
+    Azure/
+      Tabelas/
+    Configuracao/
+  Empresa.Modelo.Functions/
+    Functions/
+    Program.cs
+  Empresa.Modelo.Worker/
+    Processadores/
+    Program.cs
+tests/
+  Empresa.Modelo.Testes.Unitarios/
+  Empresa.Modelo.Testes.Integracao/
+  Empresa.Modelo.Testes.E2E/
